@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typewise — Burst</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <h1>Typewise</h1>
+        </div>
+        <nav class="modes" aria-label="Training modes">
+          <button class="mode is-active" data-mode="burst" type="button">Burst</button>
+          <button class="mode" data-mode="flow" type="button" disabled>Flow <span class="soon">soon</span></button>
+          <button class="mode" data-mode="drill" type="button" disabled>Drill <span class="soon">soon</span></button>
+        </nav>
+        <button class="restart" id="restart" type="button">Restart</button>
+      </header>
+
+      <main class="stage" id="stage" tabindex="0">
+        <p class="hint" id="hint">Type the word. Charge fills on fast, correct hits.</p>
+        <div class="word-row">
+          <div class="word" id="word" aria-live="polite" aria-atomic="true"></div>
+          <div class="speed" id="speed" aria-live="polite" aria-atomic="true">
+            <span class="speed-value" id="speedValue">—</span>
+            <span class="speed-unit">wpm</span>
+          </div>
+        </div>
+        <div class="charge-wrap">
+          <div class="charge-label">Charge <span id="chargeCount">0 / 5</span></div>
+          <div class="charge" id="charge" role="meter" aria-label="Unlock charge" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"></div>
+        </div>
+      </main>
+
+      <footer class="controls">
+        <div class="control">
+          <span class="control-label">Target</span>
+          <div class="chips" id="wpmChips" role="group" aria-label="Target WPM">
+            <button class="chip" type="button" data-wpm="60">60</button>
+            <button class="chip is-active" type="button" data-wpm="90">90</button>
+            <button class="chip" type="button" data-wpm="120">120</button>
+          </div>
+        </div>
+        <div class="control">
+          <span class="control-label">Unlock after</span>
+          <div class="chips" id="nChips" role="group" aria-label="Attempts to unlock">
+            <button class="chip" type="button" data-n="3">3</button>
+            <button class="chip is-active" type="button" data-n="5">5</button>
+            <button class="chip" type="button" data-n="10">10</button>
+          </div>
+        </div>
+        <div class="control">
+          <span class="control-label">Word List</span>
+          <div class="chips" id="listChips">
+            <button class="chip is-active" type="button" data-list="common">Common</button>
+            <button class="chip" type="button" data-list="numbers">Numbers</button>
+            <button class="chip" type="button" data-list="custom">Custom</button>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center;">
+      <div style="background:#14161c; border:1px solid #2a2e38; border-radius:20px; padding:32px; width:min(500px,90%); display:flex; flex-direction:column; gap:16px;">
+        <h2 style="color:#e8e6df; font-size:1.2rem;">Custom Word List</h2>
+        <p style="color:#8b8f9a; font-size:0.85rem;">Enter words separated by spaces or new lines</p>
+        <textarea id="overlayWords" rows="8" placeholder="hello world python code..."
+          style="background:#0c0d10; border:1px solid #2a2e38; color:#e8e6df; padding:12px; border-radius:12px; font-family:IBM Plex Mono,monospace; font-size:0.95rem; resize:vertical; outline:none;"></textarea>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button id="closeOverlay" class="restart" type="button">Cancel</button>
+          <button id="applyCustom" class="chip is-active" type="button">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
