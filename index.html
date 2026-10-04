@@ -17,11 +17,12 @@
           <h1>Typewise</h1>
         </div>
         <nav class="modes" aria-label="Training modes">
-          <button class="mode is-active" data-mode="burst" type="button">Burst</button>
-          <button class="mode" data-mode="chunk" type="button">Chunk</button>
+          <button class="mode" data-mode="burst" type="button">Burst</button>
+<button class="mode is-active" data-mode="chunk" type="button">Chunk</button>
           <button class="mode" data-mode="flow" type="button" disabled>Flow <span class="soon">soon</span></button>
         </nav>
         <button class="restart" id="restart" type="button">Restart</button>
+        <button class="restart" id="introBtn" type="button">?</button>
       </header>
 
       <main class="stage" id="stage" tabindex="0">
@@ -104,6 +105,20 @@
         </div>
       </footer>
     </div>
+
+    <div id="introOverlay" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.9); backdrop-filter:blur(10px); z-index:200; align-items:center; justify-content:center;">
+  <div style="background:#15171b; border:1px solid #262a30; border-radius:20px; padding:40px; width:min(560px,90%); display:flex; flex-direction:column; gap:16px;">
+    <p style="color:#80868f; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em;">Before you start</p>
+    <h2 style="color:#ecebe6; font-size:1.4rem;">Why chunking?</h2>
+    <p style="color:#c7cbd1; font-size:0.95rem; line-height:1.6;">
+      Skilled typists don't type letter by letter — they group keystrokes into small motor "chunks," often at syllable boundaries, and fire each chunk as one fluid motion instead of a string of separate decisions. This is called motor chunking, and it's a big part of what separates fast, fluid typists from slow, letter-by-letter ones.
+    </p>
+    <p style="color:#c7cbd1; font-size:0.95rem; line-height:1.6;">
+      Burst mode trains raw speed and accuracy. Chunk mode trains this grouping directly — the dots between syllables (<span style="color:#e8b86d;">sou·th</span>, <span style="color:#e8b86d;">gall·ery</span>) show you the natural chunk boundaries, so your fingers start learning to move in those groups instead of one letter at a time.
+    </p>
+    <button id="closeIntro" class="chip is-active" type="button" style="align-self:flex-start; padding:12px 28px; font-size:1rem; margin-top:8px;">Got it, let's type</button>
+  </div>
+</div>
 
     <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center;">
       <div style="background:#14161c; border:1px solid #2a2e38; border-radius:20px; padding:32px; width:min(500px,90%); display:flex; flex-direction:column; gap:16px;">

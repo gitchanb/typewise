@@ -337,7 +337,8 @@ body {
   }
 }
 .chunk-letter {
-  color: #3d4250;
+  color: #525a6b;
+  font-weight: 500;
   transition: color 0.08s ease;
   position: relative;
 }

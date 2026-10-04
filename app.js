@@ -93,6 +93,7 @@ async function loadChunkWords(name) {
 
 const STORAGE_WPM = "typewise.targetWpm"
 const STORAGE_N = "typewise.unlockN"
+const STORAGE_INTRO = "typewise.seenIntro"
 
 const wordEl = document.getElementById("word")
 const speedEl = document.getElementById("speed")
@@ -102,7 +103,7 @@ const chargeCountEl = document.getElementById("chargeCount")
 const stageEl = document.getElementById("stage")
 const restartEl = document.getElementById("restart")
 
-let currentMode = "burst"
+let currentMode = "chunk"
 let numChunks = 2
 let selectedTime = 30
 
@@ -122,6 +123,10 @@ const chunkState = {
   startTime: null,
   timer: null,
   timeLeft: 30,
+  wordPool: [],
+  poolIndex: 0,
+  totalKeystrokes: 0,
+  correctKeystrokes: 0,
 }
 
 // ── AUDIO ─────────────────────────────────────────────
@@ -276,59 +281,74 @@ function handleBurstKey(key) {
 }
 
 // ── CHUNK MODE ────────────────────────────────────────
+function buildWordSpan(word) {
+  const wordDiv = document.createElement("span")
+  wordDiv.style.cssText = "display:inline-flex; align-items:baseline; margin-right:16px;"
+  const chunks = splitIntoChunks(word, numChunks)
+  chunks.forEach((chunk, ci) => {
+    const chunkSpan = document.createElement("span")
+    ;[...chunk].forEach(letter => {
+      const s = document.createElement("span")
+      s.className = "chunk-letter"
+      s.textContent = letter
+      chunkSpan.appendChild(s)
+      chunkState.allLetters.push(s)
+    })
+    wordDiv.appendChild(chunkSpan)
+    if (ci < chunks.length - 1) {
+      const dot = document.createElement("span")
+      dot.textContent = "·"
+      dot.style.cssText = "color:#3d4250; margin:0 1px; font-size:0.8em;"
+      wordDiv.appendChild(dot)
+    }
+  })
+  const space = document.createElement("span")
+  space.className = "chunk-letter chunk-space"
+  space.textContent = " "
+  wordDiv.appendChild(space)
+  chunkState.allLetters.push(space)
+  return wordDiv
+}
+
+function nextPoolWord() {
+  if (chunkState.poolIndex >= chunkState.wordPool.length) {
+    chunkState.wordPool = shuffle(chunkState.wordPool)
+    chunkState.poolIndex = 0
+  }
+  return chunkState.wordPool[chunkState.poolIndex++]
+}
+
+function appendChunkWords(count) {
+  const container = document.getElementById("chunkLine")
+  for (let i = 0; i < count; i++) {
+    container.appendChild(buildWordSpan(nextPoolWord()))
+  }
+}
+
 function renderChunkLine() {
   const container = document.getElementById("chunkLine")
   container.innerHTML = ""
   chunkState.allLetters = []
-  const words = state.words.slice(0, 30)
-
-  words.forEach(word => {
-    const wordDiv = document.createElement("span")
-    wordDiv.style.cssText = "display:inline-flex; align-items:baseline; margin-right:16px;"
-    const chunks = splitIntoChunks(word, numChunks)
-    chunks.forEach((chunk, ci) => {
-      const chunkSpan = document.createElement("span")
-      ;[...chunk].forEach(letter => {
-        const s = document.createElement("span")
-        s.className = "chunk-letter"
-        s.textContent = letter
-        chunkSpan.appendChild(s)
-        chunkState.allLetters.push(s)
-      })
-      wordDiv.appendChild(chunkSpan)
-      if (ci < chunks.length - 1) {
-        const dot = document.createElement("span")
-        dot.textContent = "·"
-        dot.style.cssText = "color:#3d4250; margin:0 1px; font-size:0.8em;"
-        wordDiv.appendChild(dot)
-      }
-    })
-    const space = document.createElement("span")
-    space.className = "chunk-letter chunk-space"
-    space.textContent = " "
-    wordDiv.appendChild(space)
-    chunkState.allLetters.push(space)
-    container.appendChild(wordDiv)
-  })
-
+  appendChunkWords(30)
   if (chunkState.allLetters.length > 0) {
     chunkState.allLetters[0].classList.add("is-caret")
   }
 }
-
 async function startChunkMode() {
-
   document.getElementById("chunkEndScreen").style.display = "none"
   chunkState.position = 0
   chunkState.startTime = null
   chunkState.timeLeft = selectedTime
+  chunkState.totalKeystrokes = 0
+  chunkState.correctKeystrokes = 0
   clearInterval(chunkState.timer)
   document.getElementById("chunkTimer").textContent = `${selectedTime}s`
   document.getElementById("chunkWpm").textContent = "— WPM"
   document.getElementById("chunkLine").textContent = "Loading words…"
   try {
     const words = await loadChunkWords(chunkListName)
-    state.words = shuffle(words)
+    chunkState.wordPool = shuffle(words)
+    chunkState.poolIndex = 0
     renderChunkLine()
   } catch (err) {
     document.getElementById("chunkLine").textContent = "Couldn't load word list. Check the words/ folder and that you're using Live Server."
@@ -357,7 +377,7 @@ function handleChunkKey(key) {
       chunkState.timeLeft--
       document.getElementById("chunkTimer").textContent = `${chunkState.timeLeft}s`
       if (chunkState.timeLeft <= 0) {
-       clearInterval(chunkState.timer)
+        clearInterval(chunkState.timer)
         endChunkRound()
       }
     }, 1000)
@@ -369,8 +389,10 @@ function handleChunkKey(key) {
   const current = chunkState.allLetters[chunkState.position]
   current.classList.remove("is-caret")
 
+  chunkState.totalKeystrokes++
   if (key === current.textContent || (key === " " && current.classList.contains("chunk-space"))) {
     current.classList.add("is-correct")
+    chunkState.correctKeystrokes++
     playCorrect()
   } else {
     current.classList.add("is-wrong")
@@ -378,6 +400,11 @@ function handleChunkKey(key) {
   }
 
   chunkState.position++
+
+  if (chunkState.allLetters.length - chunkState.position < 15) {
+    appendChunkWords(20)
+  }
+
   if (chunkState.position < chunkState.allLetters.length) {
     chunkState.allLetters[chunkState.position].classList.add("is-caret")
   }
@@ -417,16 +444,16 @@ function switchMode(mode) {
 }
  
 function endChunkRound() {
-  const correct = chunkState.allLetters.filter(l => l.classList.contains("is-correct")).length
-  const wrong = chunkState.allLetters.filter(l => l.classList.contains("is-wrong")).length
-  const attempted = correct + wrong
-  const wpm = Math.round((correct / 5) / (selectedTime / 60))
-  const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 100
+  const correctChars = chunkState.allLetters.filter(l => l.classList.contains("is-correct")).length
+  const wpm = Math.round((correctChars / 5) / (selectedTime / 60))
+  const accuracy = chunkState.totalKeystrokes > 0
+    ? Math.round((chunkState.correctKeystrokes / chunkState.totalKeystrokes) * 100)
+    : 100
 
   document.getElementById("chunkWpm").textContent = `${wpm} WPM`
   document.getElementById("endWpm").textContent = wpm
   document.getElementById("endAccuracy").textContent = `${accuracy}%`
-  document.getElementById("endChars").textContent = attempted
+  document.getElementById("endChars").textContent = chunkState.totalKeystrokes
   document.getElementById("chunkEndScreen").style.display = "flex"
 }
 
@@ -475,6 +502,15 @@ function closeOverlay() {
   document.getElementById("overlay").style.display = "none"
 }
 
+function openIntro() {
+  document.getElementById("introOverlay").style.display = "flex"
+}
+
+function closeIntro() {
+  document.getElementById("introOverlay").style.display = "none"
+  localStorage.setItem(STORAGE_INTRO, "1")
+}
+
 // ── EVENT LISTENERS ───────────────────────────────────
 document.querySelectorAll(".mode").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -485,7 +521,9 @@ document.querySelectorAll(".mode").forEach(btn => {
   })
 })
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", (event) => {  
+    
+  if (document.getElementById("introOverlay").style.display === "flex") return
   if (document.getElementById("overlay").style.display === "flex") return
   if (document.getElementById("chunkEndScreen").style.display === "flex") return
   if (event.ctrlKey || event.metaKey || event.altKey) return
@@ -557,6 +595,8 @@ document.getElementById("listChips").addEventListener("click", (e) => {
 })
 
 document.getElementById("closeOverlay").addEventListener("click", closeOverlay)
+document.getElementById("closeIntro").addEventListener("click", closeIntro)
+document.getElementById("introBtn").addEventListener("click", openIntro)
 
 document.getElementById("applyCustom").addEventListener("click", () => {
   const input = document.getElementById("overlayWords").value.trim()
@@ -578,4 +618,7 @@ document.getElementById("tryAgainBtn").addEventListener("click", () => {
 // ── INIT ─────────────────────────────────────────────
 loadSettings()
 syncChips()
-restart()
+switchMode("chunk")
+if (localStorage.getItem(STORAGE_INTRO)) {
+  document.getElementById("introOverlay").style.display = "none"
+}
