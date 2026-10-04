@@ -3,13 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Typewise — Burst</title>
+    <title>Typewise</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -21,50 +18,88 @@
         </div>
         <nav class="modes" aria-label="Training modes">
           <button class="mode is-active" data-mode="burst" type="button">Burst</button>
+          <button class="mode" data-mode="chunk" type="button">Chunk</button>
           <button class="mode" data-mode="flow" type="button" disabled>Flow <span class="soon">soon</span></button>
-          <button class="mode" data-mode="drill" type="button" disabled>Drill <span class="soon">soon</span></button>
         </nav>
         <button class="restart" id="restart" type="button">Restart</button>
       </header>
 
       <main class="stage" id="stage" tabindex="0">
-        <p class="hint" id="hint">Type the word. Charge fills on fast, correct hits.</p>
-        <div class="word-row">
-          <div class="word" id="word" aria-live="polite" aria-atomic="true"></div>
-          <div class="speed" id="speed" aria-live="polite" aria-atomic="true">
-            <span class="speed-value" id="speedValue">—</span>
-            <span class="speed-unit">wpm</span>
+
+        <!-- BURST MODE -->
+        <div id="burstMode">
+          <p class="hint">Type the word. Charge fills on fast, correct hits.</p>
+          <div class="word-row">
+            <div class="word" id="word" aria-live="polite" aria-atomic="true"></div>
+            <div class="speed" id="speed" aria-live="polite" aria-atomic="true">
+              <span class="speed-value" id="speedValue">—</span>
+              <span class="speed-unit">wpm</span>
+            </div>
+          </div>
+          <div class="charge-wrap">
+            <div class="charge-label">Charge <span id="chargeCount">0 / 5</span></div>
+            <div class="charge" id="charge" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"></div>
           </div>
         </div>
-        <div class="charge-wrap">
-          <div class="charge-label">Charge <span id="chargeCount">0 / 5</span></div>
-          <div class="charge" id="charge" role="meter" aria-label="Unlock charge" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"></div>
+
+        <!-- CHUNK MODE -->
+        <div id="chunkMode" style="display:none; width:100%; max-width:800px; flex-direction:column; gap:24px;">
+          <div style="display:flex; justify-content:space-between; color:#8b8f9a; font-size:0.9rem;">
+            <span id="chunkTimer">30s</span>
+            <span id="chunkWpm">— WPM</span>
+          </div>
+          <div id="chunkLine" style="font-family:'IBM Plex Mono',monospace; font-size:1.4rem; line-height:2.5; display:flex; flex-wrap:wrap; gap:12px;"></div>
         </div>
+
       </main>
 
       <footer class="controls">
-        <div class="control">
+        <div class="control" id="targetControl">
           <span class="control-label">Target</span>
-          <div class="chips" id="wpmChips" role="group" aria-label="Target WPM">
+          <div class="chips" id="wpmChips" role="group">
             <button class="chip" type="button" data-wpm="60">60</button>
             <button class="chip is-active" type="button" data-wpm="90">90</button>
             <button class="chip" type="button" data-wpm="120">120</button>
           </div>
         </div>
-        <div class="control">
+        <div class="control" id="unlockControl">
           <span class="control-label">Unlock after</span>
-          <div class="chips" id="nChips" role="group" aria-label="Attempts to unlock">
+          <div class="chips" id="nChips" role="group">
             <button class="chip" type="button" data-n="3">3</button>
             <button class="chip is-active" type="button" data-n="5">5</button>
             <button class="chip" type="button" data-n="10">10</button>
           </div>
         </div>
-        <div class="control">
-          <span class="control-label">Word List</span>
-          <div class="chips" id="listChips">
-            <button class="chip is-active" type="button" data-list="common">Common</button>
-            <button class="chip" type="button" data-list="numbers">Numbers</button>
-            <button class="chip" type="button" data-list="custom">Custom</button>
+        <div class="control" id="listControl">
+  <span class="control-label">Word List</span>
+  <div class="chips" id="listChips">
+    <button class="chip is-active" type="button" data-list="common">Common</button>
+    <button class="chip" type="button" data-list="numbers">Numbers</button>
+    <button class="chip" type="button" data-list="custom">Custom</button>
+  </div>
+</div>
+<div class="control" id="chunkListControl" style="display:none;">
+  <span class="control-label">Word List</span>
+  <div class="chips" id="chunkListChips">
+    <button class="chip" type="button" data-clist="english_200">200</button>
+    <button class="chip is-active" type="button" data-clist="english_1k">1k</button>
+    <button class="chip" type="button" data-clist="english_5k">5k</button>
+    <button class="chip" type="button" data-clist="english_10k">10k</button>
+  </div>
+</div>
+        <div class="control" id="chunkControl" style="display:none;">
+          <span class="control-label">Chunks</span>
+          <div class="chips" id="chunkChips">
+            <button class="chip is-active" type="button" data-chunks="2">2</button>
+            <button class="chip" type="button" data-chunks="3">3</button>
+          </div>
+        </div>
+        <div class="control" id="timerControl" style="display:none;">
+          <span class="control-label">Timer</span>
+          <div class="chips" id="timerChips">
+            <button class="chip is-active" type="button" data-time="30">30s</button>
+            <button class="chip" type="button" data-time="60">60s</button>
+            <button class="chip" type="button" data-time="120">2m</button>
           </div>
         </div>
       </footer>
@@ -82,6 +117,25 @@
         </div>
       </div>
     </div>
+
+    <div id="chunkEndScreen" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#14161c; border:1px solid #2a2e38; border-radius:20px; padding:40px; width:min(420px,90%); display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center;">
+    <p style="color:#8b8f9a; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">Time's up</p>
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:3.5rem; font-weight:600; color:#e8b86d;" id="endWpm">0</div>
+    <div style="color:#8b8f9a; font-size:0.9rem; margin-bottom:16px;">WPM</div>
+    <div style="display:flex; gap:32px; margin-bottom:24px;">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.4rem; color:#e8e6df;" id="endAccuracy">0%</div>
+        <div style="color:#8b8f9a; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em;">Accuracy</div>
+      </div>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.4rem; color:#e8e6df;" id="endChars">0</div>
+        <div style="color:#8b8f9a; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em;">Chars typed</div>
+      </div>
+    </div>
+    <button id="tryAgainBtn" class="chip is-active" type="button" style="padding:12px 28px; font-size:1rem;">Try Again</button>
+  </div>
+</div>
 
     <script src="app.js"></script>
   </body>

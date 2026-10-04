@@ -1,14 +1,17 @@
 :root {
-  --bg: #0c0d10;
-  --bg-elev: #14161c;
-  --line: #2a2e38;
-  --text: #e8e6df;
-  --muted: #8b8f9a;
+  --bg: #0a0b0d;
+  --bg-elev: #15171b;
+  --line: #262a30;
+  --text: #ecebe6;
+  --muted: #80868f;
   --accent: #e8b86d;
   --good: #6ee7b7;
   --bad: #fb7185;
   --slow: #fbbf24;
   --focus: #7dd3fc;
+}
+body {
+  background: var(--bg);
 }
 
 * {
@@ -20,15 +23,6 @@
 html,
 body {
   height: 100%;
-}
-
-body {
-  font-family: Outfit, system-ui, sans-serif;
-  background:
-    radial-gradient(1200px 600px at 50% -10%, #1a1d27 0%, transparent 60%),
-    var(--bg);
-  color: var(--text);
-  min-height: 100%;
 }
 
 .app {
@@ -341,4 +335,23 @@ body {
     justify-content: center;
     margin-inline: 0;
   }
+}
+.chunk-letter {
+  color: #3d4250;
+  transition: color 0.08s ease;
+  position: relative;
+}
+
+.chunk-letter.is-correct { color: var(--text); }
+.chunk-letter.is-wrong { color: var(--bad); }
+
+.chunk-letter.is-caret::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  width: 2px;
+  height: 0.78em;
+  background: var(--accent);
+  animation: blink 1s step-end infinite;
 }
