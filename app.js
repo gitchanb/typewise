@@ -338,24 +338,27 @@ function handleBurstKey(key) {
   if (key.length !== 1) return
   if (key === " ") {
     state.lastMiss = { expected: word[state.typed.length], pressed: "space" }
+    setGauge(0)
     failAttempt("miss", "miss")
     return
   }
   if (!state.startTime) state.startTime = performance.now()
   if (key !== word[state.typed.length]) {
     state.lastMiss = { expected: word[state.typed.length], pressed: key }
+    setGauge(0)
     failAttempt("miss", "miss")
     return
   }
   state.typed += key
   renderWord()
+  updateLiveGauge()
   if (state.typed.length === word.length) {
     const elapsed = performance.now() - state.startTime
     const wpm = attemptWpm(elapsed, word.length)
+    setGauge(wpm)
     wpm >= state.targetWpm ? succeedAttempt(wpm) : failAttempt("slow", String(wpm))
   }
 }
-
 // ── CHUNK MODE ────────────────────────────────────────
 function buildWordSpan(word) {
   const wordDiv = document.createElement("span")
@@ -755,9 +758,50 @@ restartEl.addEventListener("click", () => {
 document.getElementById("tryAgainBtn").addEventListener("click", () => {
   startChunkMode()
 })
+
+const GAUGE_MAX = 180
+const GAUGE_STEP = 2
+let gaugeTicks = []
+
+function buildGauge() {
+  const g = document.getElementById("dialTicks")
+  g.replaceChildren()
+  gaugeTicks = []
+  const cx = 300, cy = 300
+  for (let v = 0; v <= GAUGE_MAX; v += GAUGE_STEP) {
+    const deg = 225 - 270 * (v / GAUGE_MAX)
+    const a = (deg * Math.PI) / 180
+    const major = v % 30 === 0
+    const r1 = major ? 248 : 258
+    const r2 = 272
+    const tick = document.createElementNS("http://www.w3.org/2000/svg", "line")
+    tick.setAttribute("x1", cx + r1 * Math.cos(a))
+    tick.setAttribute("y1", cy - r1 * Math.sin(a))
+    tick.setAttribute("x2", cx + r2 * Math.cos(a))
+    tick.setAttribute("y2", cy - r2 * Math.sin(a))
+    tick.setAttribute("class", major ? "tick tick-major" : "tick")
+    g.appendChild(tick)
+    gaugeTicks.push({ v, el: tick })
+  }
+}
+function setGauge(wpm) {
+  gaugeTicks.forEach(t => t.el.classList.toggle("is-lit", t.v <= wpm))
+  document.getElementById("dial").classList.toggle("is-hot", wpm > 0 && wpm >= state.targetWpm)
+}
+
+function updateLiveGauge() {
+  if (state.typed.length === 1) { setGauge(0); return }
+  if (state.typed.length < 2 || !state.startTime) return
+  const minutes = (performance.now() - state.startTime) / 60000
+  setGauge(Math.min(GAUGE_MAX, Math.round((state.typed.length / 5) / minutes)))
+}
+
 // ── INIT ─────────────────────────────────────────────
 loadSettings()
+buildGauge()
+setGauge(87)
 syncChips()
+setGauge(0)
 switchMode("chunk")
 if (localStorage.getItem(STORAGE_INTRO)) {
   document.getElementById("introOverlay").style.display = "none"

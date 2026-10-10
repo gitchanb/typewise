@@ -488,3 +488,65 @@ body {
   text-transform: uppercase;
   color: var(--muted);
 }
+
+#burstMode {
+  position: relative;
+}
+
+#burstMode > *:not(.dial) {
+  position: relative;
+  z-index: 1;
+}
+
+.dial {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(640px, 96%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.dial-halo {
+  fill: none;
+  stroke: rgba(232, 184, 109, 0.05);
+  stroke-width: 60;
+}
+
+.tick {
+  stroke: #2b303b;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tick-major {
+  stroke: #4a5160;
+  stroke-width: 3;
+}
+
+.tick.is-lit {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 4px rgba(232, 184, 109, 0.8));
+}
+
+svg.gauge,
+#gauge {
+  display: none;
+}
+
+.dial.is-hot .tick.is-lit {
+  stroke: var(--good);
+  filter: drop-shadow(0 0 4px rgba(110, 231, 183, 0.8));
+}
+
+.tick {
+  transition: stroke 0.1s ease;
+}
+
+#burstMode .charge-wrap {
+  width: min(320px, 60%);
+  margin-top: 22px;
+}

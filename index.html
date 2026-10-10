@@ -32,6 +32,10 @@
 
         <!-- BURST MODE -->
         <div id="burstMode">
+            <svg class="dial" id="dial" viewBox="0 0 600 600" aria-hidden="true">
+  <circle class="dial-halo" cx="300" cy="300" r="190" />
+  <g id="dialTicks"></g>
+</svg>
             <div id="burstTimer" style="font-family:'IBM Plex Mono',monospace; color:#8b8f9a; font-size:1rem; letter-spacing:0.04em; margin-bottom:4px; font-size:2rem; transition:opacity 0.3s ease;">5:00</div>
             <p class="hint">Type the word. Charge fills on fast, correct hits.</p>
           <div class="word-row">
@@ -41,6 +45,10 @@
               <span class="speed-unit">wpm</span>
             </div>
           </div>
+        <svg class="gauge" id="gauge" viewBox="0 20 300 140" aria-hidden="true">
+  <path class="gauge-track" d="M 30 150 A 120 120 0 0 1 270 150" />
+  <g id="gaugeTicks"></g>
+</svg>
           <div class="stats">
   <div class="stat"><span class="stat-value" id="statMiss">—</span><span class="stat-label">Last miss</span></div>
 </div>
