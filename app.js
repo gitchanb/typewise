@@ -106,6 +106,7 @@ const restartEl = document.getElementById("restart")
 let currentMode = "chunk"
 let numChunks = 2
 let selectedTime = 30
+let burstStarted = false
 
 const state = {
   words: [],
@@ -115,6 +116,12 @@ const state = {
   charge: 0,
   targetWpm: 90,
   unlockN: 5,
+  burstSelectedTime: 300,
+  burstTimeLeft: 300,
+  burstLastActivity: 0,
+  burstRunning: false,
+  burstTimer: null,
+  lastMiss: null,
 }
 
 const chunkState = {
@@ -187,6 +194,10 @@ function renderWord() {
   })
 }
 
+function renderStats() {
+  document.getElementById("statMiss").textContent =
+    state.lastMiss ? `${state.lastMiss.expected} → ${state.lastMiss.pressed}` : "—"
+}
 function renderCharge() {
   chargeEl.replaceChildren()
   chargeEl.setAttribute("aria-valuemax", String(state.unlockN))
@@ -194,7 +205,7 @@ function renderCharge() {
   chargeCountEl.textContent = `${state.charge} / ${state.unlockN}`
   for (let i = 0; i < state.unlockN; i++) {
     const pip = document.createElement("div")
-    pip.className = "pip" + (i < state.charge ? " is-filled" : "")
+    pip.className = "pip" + (i < state.charge ? " is-filled" : "") + (i === state.charge - 1 ? " is-new" : "")
     chargeEl.appendChild(pip)
   }
 }
@@ -236,30 +247,87 @@ function attemptWpm(elapsedMs, charCount) {
 
 function failAttempt(kind, wpmText) {
   state.charge = 0
+  state.burstAttempts++
   kind === "slow" ? playSlow() : playWrong()
   renderCharge()
   showSpeed(wpmText, kind)
   flash("miss")
   resetAttempt()
+  renderStats()
 }
 
 function succeedAttempt(wpm) {
   state.charge++
+  state.burstAttempts++
+  state.burstWords++
+  state.burstWpmSum += wpm
   playCorrect()
   showSpeed(String(wpm), "good")
+  renderCharge()
+  renderStats()
   if (state.charge >= state.unlockN) {
-    flash("unlock")
-    playChargeUp()
-    nextWord()
+    fullChargeEffect()
     return
   }
-  renderCharge()
   resetAttempt()
 }
 
+let burstLocked = false
+let unlockTimeout = null
+
+function fullChargeEffect() {
+  burstLocked = true
+  flash("unlock")
+  playChargeUp()
+  chargeEl.classList.add("is-full")
+  wordEl.classList.add("is-surge")
+  ;[...wordEl.children].forEach((el, i) => {
+    el.style.animationDelay = `${i * 35}ms`
+  })
+  burstSparks()
+  unlockTimeout = setTimeout(() => {
+    chargeEl.classList.remove("is-full")
+    wordEl.classList.remove("is-surge")
+    burstLocked = false
+    nextWord()
+  }, 800)
+}
+
+function burstSparks() {
+  const rect = wordEl.getBoundingClientRect()
+  const cx = rect.left + rect.width / 2
+  const cy = rect.top + rect.height / 2
+
+  const ring = document.createElement("span")
+  ring.className = "shock-ring"
+  ring.style.left = cx + "px"
+  ring.style.top = cy + "px"
+  ring.addEventListener("animationend", () => ring.remove())
+  document.body.appendChild(ring)
+
+  const colors = ["#e8b86d", "#fff3d6", "#7dd3fc"]
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement("span")
+    p.className = "spark"
+    const angle = Math.random() * Math.PI * 2
+    const dist = 90 + Math.random() * 170
+    p.style.left = cx + "px"
+    p.style.top = cy + "px"
+    p.style.setProperty("--dx", Math.cos(angle) * dist + "px")
+    p.style.setProperty("--dy", Math.sin(angle) * dist + "px")
+    p.style.background = colors[i % colors.length]
+    p.style.animationDuration = 600 + Math.random() * 400 + "ms"
+    p.addEventListener("animationend", () => p.remove())
+    document.body.appendChild(p)
+  }
+}
+
 function handleBurstKey(key) {
+  if (burstLocked) return
   const word = currentWord()
   if (!word) return
+  state.burstLastActivity = performance.now()
+  if (!state.burstRunning) startBurstTimer()
   if (key === "Backspace") {
     if (state.typed.length > 0) {
       state.typed = state.typed.slice(0, -1)
@@ -268,9 +336,17 @@ function handleBurstKey(key) {
     return
   }
   if (key.length !== 1) return
-  if (key === " ") { failAttempt("miss", "miss"); return }
+  if (key === " ") {
+    state.lastMiss = { expected: word[state.typed.length], pressed: "space" }
+    failAttempt("miss", "miss")
+    return
+  }
   if (!state.startTime) state.startTime = performance.now()
-  if (key !== word[state.typed.length]) { failAttempt("miss", "miss"); return }
+  if (key !== word[state.typed.length]) {
+    state.lastMiss = { expected: word[state.typed.length], pressed: key }
+    failAttempt("miss", "miss")
+    return
+  }
   state.typed += key
   renderWord()
   if (state.typed.length === word.length) {
@@ -413,32 +489,52 @@ function handleChunkKey(key) {
 // ── MODE SWITCHING ────────────────────────────────────
 function switchMode(mode) {
   currentMode = mode
+  clearInterval(chunkState.timer)
+  clearInterval(state.burstTimer)
+  clearTimeout(unlockTimeout)
+  state.burstRunning = false
+  burstLocked = false
+  chargeEl.classList.remove("is-full")
+  wordEl.classList.remove("is-surge")
+
   const burstEl = document.getElementById("burstMode")
   const chunkEl = document.getElementById("chunkMode")
   const chunkCtrl = document.getElementById("chunkControl")
   const timerCtrl = document.getElementById("timerControl")
   const targetCtrl = document.getElementById("targetControl")
   const unlockCtrl = document.getElementById("unlockControl")
+  const listCtrl = document.getElementById("listControl")
+  const chunkListCtrl = document.getElementById("chunkListControl")
+  const burstTimeCtrl = document.getElementById("burstTimeControl")
 
   if (mode === "burst") {
     burstEl.style.display = "flex"
     chunkEl.style.display = "none"
     chunkCtrl.style.display = "none"
     timerCtrl.style.display = "none"
+    chunkListCtrl.style.display = "none"
     targetCtrl.style.display = "flex"
     unlockCtrl.style.display = "flex"
-    document.getElementById("chunkListControl").style.display = "none"
-    document.getElementById("listControl").style.display = "flex"
-    restart()
+    listCtrl.style.display = "flex"
+    burstTimeCtrl.style.display = "flex"
+    if (!burstStarted) {
+        burstStarted = true
+      restart()
+    } else {
+      if (state.charge >= state.unlockN) nextWord()
+      else resetAttempt()
+      updateBurstTimerDisplay(true)
+    }
   } else if (mode === "chunk") {
     burstEl.style.display = "none"
     chunkEl.style.display = "flex"
     chunkCtrl.style.display = "flex"
     timerCtrl.style.display = "flex"
+    chunkListCtrl.style.display = "flex"
     targetCtrl.style.display = "none"
     unlockCtrl.style.display = "none"
-    document.getElementById("listControl").style.display = "none"
-    document.getElementById("chunkListControl").style.display = "flex"
+    listCtrl.style.display = "none"
+    burstTimeCtrl.style.display = "none"
     startChunkMode()
   }
 }
@@ -481,16 +577,52 @@ function syncChips() {
     c.classList.toggle("is-active", Number(c.dataset.time) === selectedTime))
   document.querySelectorAll("[data-clist]").forEach(c =>
     c.classList.toggle("is-active", c.dataset.clist === chunkListName))
+  document.querySelectorAll("[data-burst-time]").forEach(c =>
+    c.classList.toggle("is-active", Number(c.dataset.burstTime) === state.burstSelectedTime))
+
 }
 
 function restart() {
+  clearTimeout(unlockTimeout)
+  clearInterval(state.burstTimer)
+  burstLocked = false
+  state.burstRunning = false
+  chargeEl.classList.remove("is-full")
+  wordEl.classList.remove("is-surge")
+  state.burstTimeLeft = state.burstSelectedTime
+  state.lastMiss = null
+  updateBurstTimerDisplay()
   state.words = shuffle(WORDS)
   state.index = 0
   state.charge = 0
   showSpeed("—", "")
   resetAttempt()
   renderCharge()
+  renderStats()
   stageEl.focus()
+}
+
+function updateBurstTimerDisplay(paused) {
+  const m = Math.floor(state.burstTimeLeft / 60)
+  const s = state.burstTimeLeft % 60
+  document.getElementById("burstTimer").textContent = `${m}:${String(s).padStart(2, "0")}`
+  document.getElementById("burstTimer").style.opacity = paused ? "0.4" : "1"
+}
+
+function startBurstTimer() {
+  state.burstRunning = true
+  state.burstTimer = setInterval(() => {
+    const idle = performance.now() - state.burstLastActivity > 2000
+    if (!idle) {
+      state.burstTimeLeft--
+      updateBurstTimerDisplay(false)
+      if (state.burstTimeLeft <= 0) {
+        clearInterval(state.burstTimer)
+      }
+    } else {
+      updateBurstTimerDisplay(true)
+    }
+  }, 1000)
 }
 
 // ── OVERLAY ───────────────────────────────────────────
@@ -570,6 +702,14 @@ document.getElementById("timerChips").addEventListener("click", (e) => {
   startChunkMode()
 })
 
+document.getElementById("burstTimeChips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-burst-time]")
+  if (!chip) return
+  state.burstSelectedTime = Number(chip.dataset.burstTime)
+  syncChips()
+  restart()
+})
+
 document.getElementById("chunkListChips").addEventListener("click", (e) => {
   const chip = e.target.closest("[data-clist]")
   if (!chip) return
@@ -621,4 +761,4 @@ syncChips()
 switchMode("chunk")
 if (localStorage.getItem(STORAGE_INTRO)) {
   document.getElementById("introOverlay").style.display = "none"
-}
+}   

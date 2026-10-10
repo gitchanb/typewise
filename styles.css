@@ -22,11 +22,14 @@ body {
 
 html,
 body {
-  height: 100%;
+ font-family: Outfit, system-ui, sans-serif;
+  color: var(--text);
+  min-height: 100%;
+  background: var(--bg);
 }
 
 .app {
-  min-height: 100%;
+  min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
   max-width: 960px;
@@ -137,16 +140,15 @@ body {
 
 .word-row {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 28px;
-  flex-wrap: wrap;
-  min-height: 88px;
+  gap: 14px;
+  min-height: 140px;
 }
-
 .word {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 500;
   letter-spacing: 0.06em;
   display: flex;
@@ -154,14 +156,15 @@ body {
 
 .letter {
   position: relative;
-  color: #3d4250;
+   color: #5b6372;
   transition: color 0.08s ease;
 }
 
 .letter.is-correct {
-  color: var(--text);
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(232, 184, 109, 0.55),
+               0 0 40px rgba(232, 184, 109, 0.25);
 }
-
 .letter.is-wrong {
   color: var(--bad);
 }
@@ -188,6 +191,7 @@ body {
   align-items: baseline;
   gap: 6px;
   min-width: 7rem;
+  justify-content: center;
 }
 
 .speed-value {
@@ -355,4 +359,132 @@ body {
   height: 0.78em;
   background: var(--accent);
   animation: blink 1s step-end infinite;
+}
+
+#burstMode {
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+}
+
+.pip.is-new {
+  animation: pip-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes pip-pop {
+  0% {
+    transform: scaleX(0.6) scaleY(1);
+    box-shadow: 0 0 0 rgba(232, 184, 109, 0);
+  }
+  50% {
+    transform: scaleX(1.06) scaleY(1.9);
+    box-shadow: 0 0 22px rgba(232, 184, 109, 0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pip.is-new {
+  animation: pip-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+#charge.is-full .pip {
+  background: #fff3d6;
+  border-color: #fff3d6;
+  box-shadow: 0 0 16px #e8b86d, 0 0 34px rgba(125, 211, 252, 0.55);
+  animation: pip-full 0.8s ease-out;
+}
+
+@keyframes pip-full {
+  0% { filter: brightness(2.4); }
+  100% { filter: brightness(1); }
+}
+
+.word.is-surge .letter {
+  animation: letter-surge 0.55s ease-out both;
+}
+
+@keyframes letter-surge {
+  0% { transform: translateY(0) scale(1); }
+  35% {
+    transform: translateY(-12px) scale(1.14);
+    color: #ffffff;
+    text-shadow: 0 0 12px #ffffff, 0 0 32px #7dd3fc, 0 0 64px rgba(232, 184, 109, 0.9);
+  }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.shock-ring {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #7dd3fc;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.7);
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: ring-expand 0.7s ease-out forwards;
+}
+
+@keyframes ring-expand {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(11); opacity: 0; }
+}
+
+.spark {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 0 10px 2px rgba(232, 184, 109, 0.7);
+  transform: translate(-50%, -50%);
+  animation: spark-fly 0.8s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes spark-fly {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark, .shock-ring { display: none; }
+  .word.is-surge .letter { animation: none; }
+}
+
+.stats {
+  display: flex;
+  gap: 44px;
+  justify-content: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 6ch;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
 }

@@ -32,7 +32,8 @@
 
         <!-- BURST MODE -->
         <div id="burstMode">
-          <p class="hint">Type the word. Charge fills on fast, correct hits.</p>
+            <div id="burstTimer" style="font-family:'IBM Plex Mono',monospace; color:#8b8f9a; font-size:1rem; letter-spacing:0.04em; margin-bottom:4px; font-size:2rem; transition:opacity 0.3s ease;">5:00</div>
+            <p class="hint">Type the word. Charge fills on fast, correct hits.</p>
           <div class="word-row">
             <div class="word" id="word" aria-live="polite" aria-atomic="true"></div>
             <div class="speed" id="speed" aria-live="polite" aria-atomic="true">
@@ -40,6 +41,9 @@
               <span class="speed-unit">wpm</span>
             </div>
           </div>
+          <div class="stats">
+  <div class="stat"><span class="stat-value" id="statMiss">—</span><span class="stat-label">Last miss</span></div>
+</div>
           <div class="charge-wrap">
             <div class="charge-label">Charge <span id="chargeCount">0 / 5</span></div>
             <div class="charge" id="charge" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"></div>
@@ -73,6 +77,14 @@
             <button class="chip is-active" type="button" data-n="5">5</button>
             <button class="chip" type="button" data-n="10">10</button>
           </div>
+          <div class="control" id="burstTimeControl">
+  <span class="control-label">Practice</span>
+  <div class="chips" id="burstTimeChips">
+    <button class="chip" type="button" data-burst-time="180">3m</button>
+    <button class="chip is-active" type="button" data-burst-time="300">5m</button>
+    <button class="chip" type="button" data-burst-time="600">10m</button>
+  </div>
+</div>
         </div>
         <div class="control" id="listControl">
   <span class="control-label">Word List</span>
