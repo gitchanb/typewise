@@ -1,77 +1,20 @@
-const WORDS = [
-  "about", "above", "accept", "across", "action", "actor", "actual", "admit",
-  "adopt", "adult", "after", "again", "agent", "agree", "ahead", "allow",
-  "almost", "alone", "along", "also", "always", "among", "amount", "animal",
-  "annual", "answer", "anyone", "appear", "apple", "apply", "argue", "around",
-  "arrive", "artist", "assume", "attack", "attend", "author", "avoid", "award",
-  "aware", "beach", "begin", "behind", "believe", "below", "benefit", "better",
-  "beyond", "board", "border", "bottle", "branch", "break", "bridge", "bright",
-  "bring", "brother", "budget", "build", "button", "camera", "career", "carry",
-  "catch", "cause", "center", "chance", "change", "charge", "choice", "choose",
-  "circle", "city", "claim", "class", "clean", "clear", "client", "close",
-  "cloud", "coach", "coffee", "collect", "color", "common", "company", "compare",
-  "complete", "computer", "concern", "control", "corner", "count", "course",
-  "cover", "create", "credit", "crime", "cross", "culture", "current", "custom",
-  "danger", "debate", "decade", "decide", "deep", "defend", "degree", "demand",
-  "design", "detail", "device", "dinner", "direct", "discuss", "doctor", "double",
-  "dream", "drive", "during", "early", "earth", "easy", "effect", "effort",
-  "eight", "either", "energy", "engage", "engine", "enough", "enter", "entire",
-  "equal", "error", "escape", "event", "every", "evidence", "exact", "example",
-  "except", "exist", "expect", "expert", "extend", "extra", "face", "fact",
-  "factor", "fail", "fair", "family", "famous", "father", "field", "figure",
-  "final", "finger", "finish", "fire", "first", "focus", "follow", "force",
-  "forest", "forget", "form", "former", "found", "frame", "friend", "front",
-  "future", "garden", "gather", "general", "glass", "global", "ground", "group",
-  "grow", "guard", "guess", "guide", "happen", "happy", "health", "heart",
-  "heavy", "hello", "history", "hold", "home", "hope", "horse", "hotel",
-  "hour", "house", "human", "idea", "image", "impact", "include", "income",
-  "indeed", "inside", "instead", "interest", "issue", "item", "itself", "join",
-  "judge", "just", "keep", "kind", "know", "large", "later", "laugh", "launch",
-  "learn", "least", "leave", "legal", "letter", "level", "light", "likely",
-  "limit", "listen", "little", "local", "long", "look", "machine", "major",
-  "manage", "market", "master", "matter", "maybe", "mean", "media", "member",
-  "memory", "method", "middle", "might", "minute", "model", "modern", "moment",
-  "money", "month", "moral", "mother", "motor", "mouth", "move", "music",
-  "myself", "nation", "nature", "near", "nearly", "need", "network", "never",
-  "night", "noise", "north", "note", "notice", "number", "occur", "offer",
-  "office", "often", "once", "online", "open", "option", "order", "other",
-  "outside", "owner", "page", "paint", "paper", "parent", "part", "party",
-  "pass", "peace", "people", "period", "person", "phone", "photo", "piece",
-  "place", "plan", "plant", "player", "point", "policy", "power", "press",
-  "pretty", "price", "private", "problem", "process", "produce", "product",
-  "program", "project", "protect", "prove", "public", "pull", "purpose", "push",
-  "quality", "question", "quick", "quite", "radio", "raise", "range", "rate",
-  "rather", "reach", "read", "ready", "real", "reason", "recent", "record",
-  "reduce", "region", "relate", "remain", "remember", "remove", "report",
-  "require", "result", "return", "reveal", "right", "river", "road", "rock",
-  "role", "round", "rule", "safe", "same", "save", "scene", "school", "science",
-  "score", "search", "season", "second", "secret", "section", "seek", "seem",
-  "select", "send", "sense", "series", "serve", "seven", "several", "shall",
-  "share", "short", "should", "show", "side", "sign", "simple", "since",
-  "single", "skill", "small", "smile", "social", "solid", "solve", "sound",
-  "source", "south", "space", "speak", "special", "speed", "spend", "sport",
-  "staff", "stage", "stand", "start", "state", "station", "stay", "step",
-  "still", "stock", "stone", "store", "story", "street", "strong", "student",
-  "study", "style", "subject", "success", "such", "sudden", "suffer", "summer",
-  "supply", "support", "sure", "system", "table", "take", "talk", "target",
-  "teach", "team", "tell", "ten", "tend", "term", "test", "than", "thank",
-  "their", "them", "then", "theory", "there", "these", "thing", "think",
-  "third", "those", "though", "thought", "three", "through", "throw", "thus",
-  "time", "today", "together", "tone", "total", "touch", "toward", "town",
-  "track", "trade", "train", "travel", "treat", "tree", "trial", "trip",
-  "true", "truth", "turn", "type", "under", "unit", "until", "upon", "usual",
-  "value", "various", "very", "video", "view", "visit", "voice", "wait",
-  "walk", "want", "watch", "water", "weapon", "week", "weight", "well",
-  "west", "what", "when", "where", "which", "while", "white", "whole",
-  "whose", "wide", "wife", "will", "wind", "window", "wish", "within",
-  "without", "woman", "wonder", "word", "work", "world", "worry", "worth",
-  "would", "write", "wrong", "yard", "year", "young", "your"
-]
 
 const WORD_LISTS = {
-  common: WORDS,
   numbers: ["1234", "5678", "9012", "3456", "7890", "1357", "2468"]
 }
+
+const burstWordCache = {}
+
+async function loadBurstWords(name) {
+  if (WORD_LISTS[name]) return WORD_LISTS[name]
+  if (burstWordCache[name]) return burstWordCache[name]
+  const res = await fetch(`words/burst_${name}.json`)
+  if (!res.ok) throw new Error(`Failed to load ${name}`)
+  burstWordCache[name] = await res.json()
+  return burstWordCache[name]
+}
+
+
 
 const CHUNK_WORD_LISTS = {
   english_200: "words/english_200.json",
@@ -102,12 +45,219 @@ const chargeEl = document.getElementById("charge")
 const chargeCountEl = document.getElementById("chargeCount")
 const stageEl = document.getElementById("stage")
 const restartEl = document.getElementById("restart")
+const customWpmChip = document.getElementById("customWpmChip")
+const customWpmInput = document.getElementById("customWpmInput")
 
 let currentMode = "chunk"
 let numChunks = 2
 let selectedTime = 30
 let burstStarted = false
+let burstListName = "easy"
 
+const STORAGE_BANK = "typewise.repairBank"
+let repairBank = {}
+
+function loadBank() {
+  try {
+    repairBank = JSON.parse(localStorage.getItem(STORAGE_BANK)) || {}
+  } catch (e) {
+    repairBank = {}
+  }
+}
+
+function saveBank() {
+  try {
+    localStorage.setItem(STORAGE_BANK, JSON.stringify(repairBank))
+  } catch (e) {}
+  updateBankBadge()
+}
+
+function addToBank(word, expected, pressed) {
+  if (!word || word.length < 3) return
+  const entry = repairBank[word] || { misses: 0, added: Date.now() }
+  entry.misses++
+  entry.expected = expected
+  entry.pressed = pressed
+  repairBank[word] = entry
+  const keys = Object.keys(repairBank)
+  if (keys.length > 60) {
+    keys.sort((a, b) => repairBank[a].added - repairBank[b].added)
+    delete repairBank[keys[0]]
+  }}
+
+const BANK_RULE = { burst: 5, chunk: 1 }
+
+function addToBank(word, expected, pressed, source) {
+  if (!word || word.length < 3) return
+  const entry = repairBank[word] || { burst: 0, chunk: 0, added: Date.now() }
+  entry[source] = (entry[source] || 0) + 1
+  entry.expected = expected
+  entry.pressed = pressed
+  repairBank[word] = entry
+  const keys = Object.keys(repairBank)
+  if (keys.length > 300) {
+    keys.sort((a, b) => repairBank[a].added - repairBank[b].added)
+    delete repairBank[keys[0]]
+  }
+  saveBank()
+}
+
+function qualifies(entry) {
+  return (entry.burst || 0) >= BANK_RULE.burst || (entry.chunk || 0) >= BANK_RULE.chunk
+}
+
+function bankWords() {
+  return Object.keys(repairBank).filter(w => qualifies(repairBank[w]))
+}
+
+function bankSize() {
+  return bankWords().length
+}
+
+function bankSize() {
+  return Object.keys(repairBank).length
+}
+
+const ow = {
+  words: [], index: 0, typed: "", startTime: null,
+  reps: 0, targetReps: 6, done: 0, stats: {}, active: false,
+}
+
+function goToMode(mode) {
+  document.querySelectorAll(".mode").forEach(b => b.classList.toggle("is-active", b.dataset.mode === mode))
+  switchMode(mode)
+}
+
+function startOverwrite() {
+  document.getElementById("overwriteEndScreen").style.display = "none"
+  ow.words = shuffle(bankWords())
+  ow.index = 0
+  ow.done = 0
+  ow.stats = {}
+  ow.reps = 0
+  ow.typed = ""
+  ow.startTime = null
+  ow.active = ow.words.length > 0
+  renderOwWord()
+  renderOwStatus()
+}
+
+function renderOwWord() {
+  const el = document.getElementById("owWord")
+  el.replaceChildren()
+  const word = ow.words[ow.index]
+  if (!word) { el.textContent = "Repair bank is empty"; return }
+  ;[...word].forEach((ch, i) => {
+    const span = document.createElement("span")
+    span.className = "letter"
+    span.textContent = ch
+    if (i < ow.typed.length) span.classList.add("is-correct")
+    if (i === ow.typed.length) span.classList.add("is-caret")
+    el.appendChild(span)
+  })
+}
+
+function renderOwStatus() {
+  const reps = document.getElementById("owReps")
+  reps.replaceChildren()
+  for (let i = 0; i < ow.targetReps; i++) {
+    const pip = document.createElement("div")
+    pip.className = "pip" + (i < ow.reps ? " is-filled" : "")
+    reps.appendChild(pip)
+  }
+  const word = ow.words[ow.index]
+  const entry = word && repairBank[word]
+  document.getElementById("owNote").textContent =
+    entry && entry.expected ? `you typed ${entry.pressed} instead of ${entry.expected}` : ""
+  document.getElementById("owLeft").textContent = ow.words.length - ow.done
+  document.getElementById("owDone").textContent = ow.done
+}
+
+function handleOverwriteKey(key) {
+  if (!ow.active) return
+  const word = ow.words[ow.index]
+  if (!word) return
+  if (key === "Backspace") {
+    if (ow.typed.length) { ow.typed = ow.typed.slice(0, -1); renderOwWord() }
+    return
+  }
+  if (key.length !== 1) return
+  if (!ow.startTime) ow.startTime = performance.now()
+  if (key !== word[ow.typed.length]) {
+    playWrong()
+    flash("miss")
+    ow.reps = 0
+    ow.typed = ""
+    ow.startTime = null
+    renderOwWord()
+    renderOwStatus()
+    return
+  }
+  ow.typed += key
+  renderOwWord()
+  if (ow.typed.length < word.length) return
+
+  const wpm = attemptWpm(performance.now() - ow.startTime, word.length)
+  if (!ow.stats[word]) ow.stats[word] = []
+  ow.stats[word].push(wpm)
+  ow.reps++
+  playCorrect()
+  if (ow.reps >= ow.targetReps) {
+    overwriteWord(word)
+  } else {
+    ow.typed = ""
+    ow.startTime = null
+    renderOwWord()
+    renderOwStatus()
+  }
+}
+
+function overwriteWord(word) {
+  playChargeUp()
+  flash("unlock")
+  delete repairBank[word]
+  saveBank()
+  ow.done++
+  ow.index++
+  ow.reps = 0
+  ow.typed = ""
+  ow.startTime = null
+  if (ow.index >= ow.words.length) { finishOverwrite(); return }
+  renderOwWord()
+  renderOwStatus()
+}
+
+function finishOverwrite() {
+  ow.active = false
+  document.getElementById("owEndCount").textContent = ow.done
+  const box = document.getElementById("owResults")
+  box.replaceChildren()
+  Object.entries(ow.stats).forEach(([word, list]) => {
+    const row = document.createElement("div")
+    row.className = "ow-row"
+    const w = document.createElement("span")
+    w.textContent = word
+    const v = document.createElement("span")
+    v.textContent = `${list[0]} → ${list[list.length - 1]} WPM`
+    row.append(w, v)
+    box.appendChild(row)
+  })
+  document.getElementById("overwriteEndScreen").style.display = "flex"
+}
+const BANK_NEEDED = 6
+
+function updateBankBadge() {
+  const badge = document.getElementById("bankBadge")
+  if (!badge) return
+  const n = bankSize()
+  badge.textContent = `${Math.min(n, BANK_NEEDED)}/${BANK_NEEDED}`
+  badge.classList.toggle("is-ready", n >= BANK_NEEDED)
+  const btn = badge.closest("button")
+  if (btn) {
+    btn.disabled = n < BANK_NEEDED
+    btn.title = n < BANK_NEEDED ? "Miss a few words in Burst or Chunk to unlock" : "Practice the words you miss"
+  }
+}
 const state = {
   words: [],
   index: 0,
@@ -134,7 +284,13 @@ const chunkState = {
   poolIndex: 0,
   totalKeystrokes: 0,
   correctKeystrokes: 0,
+    missCounts: {},
+  streak: 0,
+  bestStreak: 0,
+  cleanChunks: 0,
 }
+
+
 
 // ── AUDIO ─────────────────────────────────────────────
 const ctx = new AudioContext()
@@ -167,12 +323,15 @@ function shuffle(list) {
   return copy
 }
 
-function splitIntoChunks(word, n) {
-  if (word.length <= 4) return [word]
-  const size = Math.ceil(word.length / n)
-  const chunks = []
-  for (let i = 0; i < word.length; i += size) {
-    chunks.push(word.slice(i, i + size))
+function mergeSyllables(parts, n) {
+  const chunks = parts.slice()
+  while (chunks.length > n) {
+    let best = 0, bestLen = Infinity
+    for (let i = 0; i < chunks.length - 1; i++) {
+      const len = chunks[i].length + chunks[i + 1].length
+      if (len < bestLen) { bestLen = len; best = i }
+    }
+    chunks.splice(best, 2, chunks[best] + chunks[best + 1])
   }
   return chunks
 }
@@ -231,7 +390,7 @@ function resetAttempt() {
 function nextWord() {
   state.index++
   if (state.index >= state.words.length) {
-    state.words = shuffle(WORDS)
+    state.words = shuffle(state.words)
     state.index = 0
   }
   state.charge = 0
@@ -274,6 +433,30 @@ function succeedAttempt(wpm) {
 
 let burstLocked = false
 let unlockTimeout = null
+
+const STORAGE_BEST = "typewise.bestWpm."
+let bestWpm = {}
+
+function loadBest() {
+  try {
+    bestWpm = JSON.parse(localStorage.getItem(STORAGE_BEST + burstListName)) || {}
+  } catch (e) {
+    bestWpm = {}
+  }
+}
+
+function saveBest(word, wpm) {
+  if ((bestWpm[word] || 0) >= wpm) return
+  bestWpm[word] = wpm
+  if (burstListName === "custom") return
+  try {
+    localStorage.setItem(STORAGE_BEST + burstListName, JSON.stringify(bestWpm))
+  } catch (e) {}
+}
+
+function clearedCount(target) {
+  return Object.values(bestWpm).filter(v => v >= target).length
+}
 
 function fullChargeEffect() {
   burstLocked = true
@@ -322,121 +505,143 @@ function burstSparks() {
   }
 }
 
+
 function handleBurstKey(key) {
-  if (burstLocked) return
-  const word = currentWord()
-  if (!word) return
-  state.burstLastActivity = performance.now()
-  if (!state.burstRunning) startBurstTimer()
-  if (key === "Backspace") {
-    if (state.typed.length > 0) {
-      state.typed = state.typed.slice(0, -1)
-      renderWord()
-    }
-    return
-  }
-  if (key.length !== 1) return
-  if (key === " ") {
-    state.lastMiss = { expected: word[state.typed.length], pressed: "space" }
-    setGauge(0)
-    failAttempt("miss", "miss")
-    return
-  }
-  if (!state.startTime) state.startTime = performance.now()
-  if (key !== word[state.typed.length]) {
-    state.lastMiss = { expected: word[state.typed.length], pressed: key }
-    setGauge(0)
-    failAttempt("miss", "miss")
-    return
-  }
-  state.typed += key
-  renderWord()
-  updateLiveGauge()
-  if (state.typed.length === word.length) {
-    const elapsed = performance.now() - state.startTime
-    const wpm = attemptWpm(elapsed, word.length)
-    setGauge(wpm)
-    wpm >= state.targetWpm ? succeedAttempt(wpm) : failAttempt("slow", String(wpm))
-  }
-}
-// ── CHUNK MODE ────────────────────────────────────────
-function buildWordSpan(word) {
-  const wordDiv = document.createElement("span")
-  wordDiv.style.cssText = "display:inline-flex; align-items:baseline; margin-right:16px;"
-  const chunks = splitIntoChunks(word, numChunks)
-  chunks.forEach((chunk, ci) => {
-    const chunkSpan = document.createElement("span")
-    ;[...chunk].forEach(letter => {
-      const s = document.createElement("span")
-      s.className = "chunk-letter"
-      s.textContent = letter
-      chunkSpan.appendChild(s)
-      chunkState.allLetters.push(s)
-    })
-    wordDiv.appendChild(chunkSpan)
-    if (ci < chunks.length - 1) {
-      const dot = document.createElement("span")
-      dot.textContent = "·"
-      dot.style.cssText = "color:#3d4250; margin:0 1px; font-size:0.8em;"
-      wordDiv.appendChild(dot)
-    }
-  })
-  const space = document.createElement("span")
-  space.className = "chunk-letter chunk-space"
-  space.textContent = " "
-  wordDiv.appendChild(space)
-  chunkState.allLetters.push(space)
-  return wordDiv
-}
+    if (burstLocked) return
+    const word = currentWord()
+    if (!word) return
+    state.burstLastActivity = performance.now()
+    if (!state.burstRunning) startBurstTimer()
+        if (key === "Backspace") {
+            if (state.typed.length > 0) {
+                state.typed = state.typed.slice(0, -1)
+                renderWord()
+            }
+            return
+        }
+        if (key.length !== 1) return
+        if (key === " ") {
+            state.lastMiss = { expected: word[state.typed.length], pressed: "space" }
+                   addToBank(word, state.lastMiss.expected, state.lastMiss.pressed, "burst")
+            setGauge(0)
+            failAttempt("miss", "miss")
+            return
+        }
+        if (!state.startTime) state.startTime = performance.now()
+            if (key !== word[state.typed.length]) {
+                state.lastMiss = { expected: word[state.typed.length], pressed: key }
+                       addToBank(word, state.lastMiss.expected, state.lastMiss.pressed, "burst")
+                setGauge(0)
+                failAttempt("miss", "miss")
+                return
+            }
+            state.typed += key
+            renderWord()
+            updateLiveGauge()
+            if (state.typed.length === word.length) {
+                const elapsed = performance.now() - state.startTime
+                const wpm = attemptWpm(elapsed, word.length)
+                saveBest(word, wpm)
+                setGauge(wpm)
+                wpm >= state.targetWpm ? succeedAttempt(wpm) : failAttempt("slow", String(wpm))
+            }
+        }
+        // ── CHUNK MODE ────────────────────────────────────────
+        function buildWordSpan(word) {
+            const wordDiv = document.createElement("span")
+            wordDiv.style.cssText = "display:inline-flex; align-items:baseline; margin-right:16px;"
+              wordDiv.dataset.word = word.replace(/-/g, "")
+            const chunks = mergeSyllables(word.split("-"), numChunks)
+            chunks.forEach((chunk, ci) => {
+                const chunkSpan = document.createElement("span")
+                chunkSpan.className = "chunk"
+                ;[...chunk].forEach(letter => {
+                    const s = document.createElement("span")
+                    s.className = "chunk-letter"
+                    s.textContent = letter
+                    chunkSpan.appendChild(s)
+                    chunkState.allLetters.push(s)
+                })
+                wordDiv.appendChild(chunkSpan)
+                if (ci < chunks.length - 1) {
+                    const dot = document.createElement("span")
+                    dot.className = "chunk-dot"
+                    dot.textContent = "·"
+                    wordDiv.appendChild(dot)
+                }
+            })
+            const space = document.createElement("span")
+            space.className = "chunk-letter chunk-space"
+            space.textContent = " "
+            wordDiv.appendChild(space)
+            chunkState.allLetters.push(space)
+            return wordDiv
+        }
+        
+        function nextPoolWord() {
+            if (chunkState.poolIndex >= chunkState.wordPool.length) {
+                chunkState.wordPool = shuffle(chunkState.wordPool)
+                chunkState.poolIndex = 0
+            }
+            return chunkState.wordPool[chunkState.poolIndex++]
+        }
+        
+        function appendChunkWords(count) {
+            const container = document.getElementById("chunkLine")
+            for (let i = 0; i < count; i++) {
+                container.appendChild(buildWordSpan(nextPoolWord()))
+            }
+        }
+        
+        function renderChunkLine() {
+            const container = document.getElementById("chunkLine")
+            container.innerHTML = ""
+            chunkState.allLetters = []
+            appendChunkWords(30)
+            if (chunkState.allLetters.length > 0) {
+                chunkState.allLetters[0].classList.add("is-caret")
+            }
+        }
+        async function startChunkMode() {
+            document.getElementById("chunkEndScreen").style.display = "none"
+            chunkState.position = 0
+            chunkState.startTime = null
+            chunkState.timeLeft = selectedTime
+            chunkState.totalKeystrokes = 0
+            chunkState.correctKeystrokes = 0
+            chunkState.missCounts = {}
+            chunkState.streak = 0
+            chunkState.bestStreak = 0
+            chunkState.cleanChunks = 0
+            clearInterval(chunkState.timer)
+            document.getElementById("chunkTimer").textContent = `${selectedTime}s`
+            document.getElementById("chunkWpm").textContent = "— WPM"
+            document.getElementById("chunkLine").textContent = "Loading words…"
+            try {
+                const words = await loadChunkWords(chunkListName)
+                chunkState.wordPool = shuffle(words)
+                chunkState.poolIndex = 0
+                renderChunkLine()
+            } catch (err) {
+                document.getElementById("chunkLine").textContent = "Couldn't load word list. Check the words/ folder and that you're using Live Server."
+                console.error(err)
+            }
+        }
+        
+        function updateChunkLive() {
+          const elapsed = selectedTime - chunkState.timeLeft
+          if (elapsed < 3) return
+          const correct = chunkState.allLetters.filter(l => l.classList.contains("is-correct")).length
+          const wpm = Math.round((correct / 5) / (elapsed / 60))
+          const acc = chunkState.totalKeystrokes
+            ? Math.round((chunkState.correctKeystrokes / chunkState.totalKeystrokes) * 100)
+            : 100
+          document.getElementById("chunkWpm").textContent = `${wpm} WPM · ${acc}%`
+        }
 
-function nextPoolWord() {
-  if (chunkState.poolIndex >= chunkState.wordPool.length) {
-    chunkState.wordPool = shuffle(chunkState.wordPool)
-    chunkState.poolIndex = 0
-  }
-  return chunkState.wordPool[chunkState.poolIndex++]
-}
 
-function appendChunkWords(count) {
-  const container = document.getElementById("chunkLine")
-  for (let i = 0; i < count; i++) {
-    container.appendChild(buildWordSpan(nextPoolWord()))
-  }
-}
-
-function renderChunkLine() {
-  const container = document.getElementById("chunkLine")
-  container.innerHTML = ""
-  chunkState.allLetters = []
-  appendChunkWords(30)
-  if (chunkState.allLetters.length > 0) {
-    chunkState.allLetters[0].classList.add("is-caret")
-  }
-}
-async function startChunkMode() {
-  document.getElementById("chunkEndScreen").style.display = "none"
-  chunkState.position = 0
-  chunkState.startTime = null
-  chunkState.timeLeft = selectedTime
-  chunkState.totalKeystrokes = 0
-  chunkState.correctKeystrokes = 0
-  clearInterval(chunkState.timer)
-  document.getElementById("chunkTimer").textContent = `${selectedTime}s`
-  document.getElementById("chunkWpm").textContent = "— WPM"
-  document.getElementById("chunkLine").textContent = "Loading words…"
-  try {
-    const words = await loadChunkWords(chunkListName)
-    chunkState.wordPool = shuffle(words)
-    chunkState.poolIndex = 0
-    renderChunkLine()
-  } catch (err) {
-    document.getElementById("chunkLine").textContent = "Couldn't load word list. Check the words/ folder and that you're using Live Server."
-    console.error(err)
-  }
-}
-
-function handleChunkKey(key) {
-  if (chunkState.position >= chunkState.allLetters.length) return
+    function handleChunkKey(key) {
+     if (chunkState.position >= chunkState.allLetters.length) return
 
   if (key === "Backspace") {
     if (chunkState.position > 0) {
@@ -455,11 +660,13 @@ function handleChunkKey(key) {
     chunkState.timer = setInterval(() => {
       chunkState.timeLeft--
       document.getElementById("chunkTimer").textContent = `${chunkState.timeLeft}s`
-      if (chunkState.timeLeft <= 0) {
-        clearInterval(chunkState.timer)
-        endChunkRound()
-      }
-    }, 1000)
+        if (chunkState.timeLeft <= 0) {
+          clearInterval(chunkState.timer)
+          endChunkRound()
+        } else {
+          updateChunkLive()
+        }      }
+    , 1000)
   }
 
   if (chunkState.timeLeft <= 0) return
@@ -473,10 +680,18 @@ function handleChunkKey(key) {
     current.classList.add("is-correct")
     chunkState.correctKeystrokes++
     playCorrect()
+    popChunkIfDone(current)
   } else {
     current.classList.add("is-wrong")
     playWrong()
+        const expected = current.classList.contains("chunk-space") ? "space" : current.textContent
+    chunkState.missCounts[expected] = (chunkState.missCounts[expected] || 0) + 1
+    chunkState.streak = 0
+    if (current.parentElement.classList.contains("chunk")) current.parentElement.dataset.missed = "1"
+        const owner = current.closest("[data-word]")
+        if (owner && expected !== "space") addToBank(owner.dataset.word, expected, key === " " ? "space" : key, "chunk")
   }
+      
 
   chunkState.position++
 
@@ -489,9 +704,27 @@ function handleChunkKey(key) {
   }
 }
 
+function popChunkIfDone(letter) {
+  const chunkEl = letter.parentElement
+  if (!chunkEl.classList.contains("chunk")) return
+  if (chunkEl.lastElementChild !== letter) return
+  if (chunkEl.dataset.missed) return
+  if (![...chunkEl.children].every(l => l.classList.contains("is-correct"))) return
+  if (!chunkEl.dataset.counted) {
+    chunkEl.dataset.counted = "1"
+    chunkState.cleanChunks++
+    chunkState.streak++
+    chunkState.bestStreak = Math.max(chunkState.bestStreak, chunkState.streak)
+  }
+  chunkEl.classList.remove("is-popped")
+  void chunkEl.offsetWidth
+  chunkEl.classList.add("is-popped")
+}
 // ── MODE SWITCHING ────────────────────────────────────
+
 function switchMode(mode) {
   currentMode = mode
+    document.getElementById("overwriteEndScreen").style.display = "none"
   clearInterval(chunkState.timer)
   clearInterval(state.burstTimer)
   clearTimeout(unlockTimeout)
@@ -500,28 +733,23 @@ function switchMode(mode) {
   chargeEl.classList.remove("is-full")
   wordEl.classList.remove("is-surge")
 
-  const burstEl = document.getElementById("burstMode")
-  const chunkEl = document.getElementById("chunkMode")
-  const chunkCtrl = document.getElementById("chunkControl")
-  const timerCtrl = document.getElementById("timerControl")
-  const targetCtrl = document.getElementById("targetControl")
-  const unlockCtrl = document.getElementById("unlockControl")
-  const listCtrl = document.getElementById("listControl")
-  const chunkListCtrl = document.getElementById("chunkListControl")
-  const burstTimeCtrl = document.getElementById("burstTimeControl")
+  const controlsFor = {
+    burst: ["targetControl", "unlockControl", "burstTimeControl", "listControl"],
+    chunk: ["chunkListControl", "chunkControl", "timerControl"],
+    overwrite: ["owRepsControl"],
+  }
+  const allControls = ["targetControl", "unlockControl", "burstTimeControl", "listControl",
+    "chunkListControl", "chunkControl", "timerControl", "owRepsControl"]
+  allControls.forEach(id => {
+    document.getElementById(id).style.display = controlsFor[mode].includes(id) ? "flex" : "none"
+  })
+  document.getElementById("burstMode").style.display = mode === "burst" ? "flex" : "none"
+  document.getElementById("chunkMode").style.display = mode === "chunk" ? "flex" : "none"
+  document.getElementById("overwriteMode").style.display = mode === "overwrite" ? "flex" : "none"
 
   if (mode === "burst") {
-    burstEl.style.display = "flex"
-    chunkEl.style.display = "none"
-    chunkCtrl.style.display = "none"
-    timerCtrl.style.display = "none"
-    chunkListCtrl.style.display = "none"
-    targetCtrl.style.display = "flex"
-    unlockCtrl.style.display = "flex"
-    listCtrl.style.display = "flex"
-    burstTimeCtrl.style.display = "flex"
     if (!burstStarted) {
-        burstStarted = true
+      burstStarted = true
       restart()
     } else {
       if (state.charge >= state.unlockN) nextWord()
@@ -529,16 +757,9 @@ function switchMode(mode) {
       updateBurstTimerDisplay(true)
     }
   } else if (mode === "chunk") {
-    burstEl.style.display = "none"
-    chunkEl.style.display = "flex"
-    chunkCtrl.style.display = "flex"
-    timerCtrl.style.display = "flex"
-    chunkListCtrl.style.display = "flex"
-    targetCtrl.style.display = "none"
-    unlockCtrl.style.display = "none"
-    listCtrl.style.display = "none"
-    burstTimeCtrl.style.display = "none"
     startChunkMode()
+  } else if (mode === "overwrite") {
+    startOverwrite()
   }
 }
  
@@ -552,7 +773,25 @@ function endChunkRound() {
   document.getElementById("chunkWpm").textContent = `${wpm} WPM`
   document.getElementById("endWpm").textContent = wpm
   document.getElementById("endAccuracy").textContent = `${accuracy}%`
-  document.getElementById("endChars").textContent = chunkState.totalKeystrokes
+  document.getElementById("endStreak").textContent = chunkState.bestStreak
+  document.getElementById("endChunks").textContent = chunkState.cleanChunks
+  document.getElementById("endSetup").textContent =
+    `${selectedTime >= 120 ? "2 min" : selectedTime + "s"} · ${chunkListName.replace("english_", "")} words · up to ${numChunks} chunks`
+
+  const top = Object.entries(chunkState.missCounts).sort((a, b) => b[1] - a[1]).slice(0, 3)
+  const box = document.getElementById("endMisses")
+  box.replaceChildren()
+  if (!top.length) {
+    box.textContent = "No misses. Clean round."
+  } else {
+    top.forEach(([letter, count]) => {
+      const chip = document.createElement("span")
+      chip.className = "miss-chip"
+      chip.textContent = `${letter} ×${count}`
+      box.appendChild(chip)
+    })
+  }
+
   document.getElementById("chunkEndScreen").style.display = "flex"
 }
 
@@ -560,7 +799,7 @@ function endChunkRound() {
 function loadSettings() {
   const wpm = Number(localStorage.getItem(STORAGE_WPM))
   const n = Number(localStorage.getItem(STORAGE_N))
-  if ([60, 90, 120].includes(wpm)) state.targetWpm = wpm
+  if (wpm >= 30 && wpm <= 300) state.targetWpm = wpm
   if ([3, 5, 10].includes(n)) state.unlockN = n
 }
 
@@ -568,6 +807,32 @@ function saveSettings() {
   localStorage.setItem(STORAGE_WPM, String(state.targetWpm))
   localStorage.setItem(STORAGE_N, String(state.unlockN))
 }
+
+function commitCustomWpm() {
+  if (customWpmInput.hidden) return
+  const v = Number(customWpmInput.value)
+  if (customWpmInput.value !== "" && !Number.isNaN(v)) {
+    state.targetWpm = Math.max(30, Math.min(180, Math.round(v)))
+    saveSettings()
+  }
+  customWpmInput.hidden = true
+  customWpmChip.hidden = false
+  syncChips()
+  stageEl.focus()
+}
+
+customWpmChip.addEventListener("click", () => {
+  customWpmChip.hidden = true
+  customWpmInput.hidden = false
+  customWpmInput.value = [60, 90, 120].includes(state.targetWpm) ? "" : state.targetWpm
+  customWpmInput.focus()
+})
+
+customWpmInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); commitCustomWpm() }
+  if (e.key === "Escape") { customWpmInput.value = ""; commitCustomWpm() }
+})
+customWpmInput.addEventListener("blur", commitCustomWpm)
 
 function syncChips() {
   document.querySelectorAll("[data-wpm]").forEach(c =>
@@ -582,10 +847,17 @@ function syncChips() {
     c.classList.toggle("is-active", c.dataset.clist === chunkListName))
   document.querySelectorAll("[data-burst-time]").forEach(c =>
     c.classList.toggle("is-active", Number(c.dataset.burstTime) === state.burstSelectedTime))
+      document.querySelectorAll("[data-list]").forEach(c =>
+    c.classList.toggle("is-active", c.dataset.list === burstListName))
+      const isPreset = [60, 90, 120].includes(state.targetWpm)
+  document.querySelectorAll("[data-reps]").forEach(c =>
+    c.classList.toggle("is-active", Number(c.dataset.reps) === ow.targetReps))
+  customWpmChip.classList.toggle("is-active", !isPreset)
+  customWpmChip.textContent = isPreset ? "Custom" : String(state.targetWpm)
 
 }
 
-function restart() {
+async function restart() {
   clearTimeout(unlockTimeout)
   clearInterval(state.burstTimer)
   burstLocked = false
@@ -595,16 +867,26 @@ function restart() {
   state.burstTimeLeft = state.burstSelectedTime
   state.lastMiss = null
   updateBurstTimerDisplay()
-  state.words = shuffle(WORDS)
   state.index = 0
   state.charge = 0
   showSpeed("—", "")
-  resetAttempt()
   renderCharge()
   renderStats()
+  setGauge(0)
+  if (burstListName === "custom") {
+    state.words = shuffle(state.words)
+  } else {
+    try {
+      state.words = shuffle(await loadBurstWords(burstListName))
+    } catch (err) {
+      wordEl.textContent = "Couldn't load words"
+      console.error(err)
+      return
+    }
+  }
+  resetAttempt()
   stageEl.focus()
 }
-
 function updateBurstTimerDisplay(paused) {
   const m = Math.floor(state.burstTimeLeft / 60)
   const s = state.burstTimeLeft % 60
@@ -657,10 +939,11 @@ document.querySelectorAll(".mode").forEach(btn => {
 })
 
 document.addEventListener("keydown", (event) => {  
-    
+      if (event.target?.tagName === "INPUT") return
   if (document.getElementById("introOverlay").style.display === "flex") return
   if (document.getElementById("overlay").style.display === "flex") return
   if (document.getElementById("chunkEndScreen").style.display === "flex") return
+    if (document.getElementById("overwriteEndScreen").style.display === "flex") return
   if (event.ctrlKey || event.metaKey || event.altKey) return
   const tag = event.target?.tagName
   if (tag === "BUTTON" && event.key === "Enter") return
@@ -668,7 +951,9 @@ document.addEventListener("keydown", (event) => {
   const isChar = event.key.length === 1 || event.key === "Backspace"
   if (!isChar) return
   event.preventDefault()
-  currentMode === "chunk" ? handleChunkKey(event.key) : handleBurstKey(event.key)
+    if (currentMode === "chunk") handleChunkKey(event.key)
+  else if (currentMode === "overwrite") handleOverwriteKey(event.key)
+  else handleBurstKey(event.key)
 })
 
 document.getElementById("wpmChips").addEventListener("click", (e) => {
@@ -726,6 +1011,19 @@ document.getElementById("listChips").addEventListener("click", (e) => {
   const chip = e.target.closest("[data-list]")
   if (!chip) return
   if (chip.dataset.list === "custom") { openOverlay(); return }
+  burstListName = chip.dataset.list
+  loadBest()
+  syncChips()
+  restart()
+})
+
+document.getElementById("listChips").addEventListener("click", (e) => {
+  if (currentMode !== "burst") return
+  const chip = e.target.closest("[data-list]")
+  if (!chip) return
+  if (chip.dataset.list === "custom") { openOverlay(); return }
+    burstListName = chip.dataset.list
+  loadBest()
   state.words = WORD_LISTS[chip.dataset.list].slice()
   state.index = 0
   state.charge = 0
@@ -744,16 +1042,31 @@ document.getElementById("introBtn").addEventListener("click", openIntro)
 document.getElementById("applyCustom").addEventListener("click", () => {
   const input = document.getElementById("overlayWords").value.trim()
   if (!input) return
+    burstListName = "custom"
+  bestWpm = {}
   state.words = input.split(/[\s\n]+/).filter(w => w.length > 0)
   state.index = 0
   state.charge = 0
   renderWord()
   renderCharge()
+  syncChips()
   closeOverlay()
 })
 
+document.getElementById("owRepsChips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-reps]")
+  if (!chip) return
+  ow.targetReps = Number(chip.dataset.reps)
+  syncChips()
+  startOverwrite()
+})
+
+document.getElementById("owDoneBtn").addEventListener("click", () => goToMode("chunk"))
+
 restartEl.addEventListener("click", () => {
-  currentMode === "chunk" ? startChunkMode() : restart()
+  if (currentMode === "chunk") startChunkMode()
+  else if (currentMode === "overwrite") startOverwrite()
+  else restart()
 })
 document.getElementById("tryAgainBtn").addEventListener("click", () => {
   startChunkMode()
@@ -802,7 +1115,10 @@ buildGauge()
 setGauge(87)
 syncChips()
 setGauge(0)
+loadBest()
+loadBank()
+updateBankBadge()
 switchMode("chunk")
 if (localStorage.getItem(STORAGE_INTRO)) {
   document.getElementById("introOverlay").style.display = "none"
-}   
+}
